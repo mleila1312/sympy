@@ -19,6 +19,8 @@ from sympy.utilities.iterables import numbered_symbols, sift, \
 
 from . import cse_opts
 
+from sympy.core.function import (Derivative, Function)
+
 # (preprocessor, postprocessor) pairs which are commonly useful. They should
 # each take a SymPy expression and return a possibly transformed expression.
 # When used in the function ``cse()``, the target expressions will be transformed
@@ -580,7 +582,7 @@ def opt_cse(exprs, order='canonical'):
     return opt_subs
 
 
-def tree_cse(exprs, symbols, opt_subs=None, order='canonical', ignore=()):
+def tree_cse(exprs, symbols,  flag_lambdify=False, opt_subs=None, order='canonical', ignore=()):
     """Perform raw CSE on expression tree, taking opt_subs into account.
 
     Parameters
@@ -599,6 +601,7 @@ def tree_cse(exprs, symbols, opt_subs=None, order='canonical', ignore=()):
     ignore : iterable of Symbols
         Substitutions containing any Symbol from ``ignore`` will be ignored.
     """
+    print(flag_lambdify)
     if opt_subs is None:
         opt_subs = {}
 
@@ -659,10 +662,15 @@ def tree_cse(exprs, symbols, opt_subs=None, order='canonical', ignore=()):
     subs = {}
 
     def _rebuild(expr):
+        print(expr, flag_lambdify)
         if not isinstance(expr, (Basic, Unevaluated)):
             return expr
 
         if not expr.args:
+            return expr
+        
+        if isinstance(expr, Derivative) and flag_lambdify:
+            print("escaped")
             return expr
 
         if iterable(expr):
@@ -687,13 +695,14 @@ def tree_cse(exprs, symbols, opt_subs=None, order='canonical', ignore=()):
                     args = list(ordered(c)) + nc
             elif isinstance(expr, (Add, MatAdd)):
                 args = list(ordered(expr.args))
-            else:
+            elif not(isinstance(expr, Derivative) and flag_lambdify):
                 args = expr.args
         else:
             args = expr.args
 
         new_args = list(map(_rebuild, args))
-        if isinstance(expr, Unevaluated) or new_args != args:
+        print("list_map", new_args)
+        if (isinstance(expr, Unevaluated) or new_args != args):
             new_expr = expr.func(*new_args)
         else:
             new_expr = expr
@@ -726,7 +735,7 @@ def tree_cse(exprs, symbols, opt_subs=None, order='canonical', ignore=()):
 
 
 def cse(exprs, symbols=None, optimizations=None, postprocess=None,
-        order='canonical', ignore=(), list=True):
+        order='canonical', ignore=(), list=True, flag_lambdify=False):
     """ Perform common subexpression elimination on an expression.
 
     Parameters
@@ -848,7 +857,8 @@ def cse(exprs, symbols=None, optimizations=None, postprocess=None,
     opt_subs = opt_cse(reduced_exprs, order)
 
     # Main CSE algorithm.
-    replacements, reduced_exprs = tree_cse(reduced_exprs, symbols, opt_subs,
+    print(flag_lambdify, "in cse")
+    replacements, reduced_exprs = tree_cse(reduced_exprs, symbols, flag_lambdify, opt_subs,
                                            order, ignore)
 
     # Postprocess the expressions to return the expressions to canonical form.

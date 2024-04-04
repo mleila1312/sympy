@@ -866,12 +866,13 @@ or tuple for the function arguments.
         funcprinter = _EvaluatorPrinter(printer, dummify)
 
     if cse == True:
-        from sympy.simplify.cse_main import cse as _cse
-        cses, _expr = _cse(expr, list=False)
+        from sympy.simplify.cse_main import cse as cse_function
+        cses, _expr = cse_function(expr, list=False, flag_lambdify=True)
     elif callable(cse):
         cses, _expr = cse(expr)
     else:
         cses, _expr = (), expr
+    print(cses, _expr)
     funcstr = funcprinter.doprint(funcname, iterable_args, _expr, cses=cses)
 
     # Collect the module imports from the code printers.
