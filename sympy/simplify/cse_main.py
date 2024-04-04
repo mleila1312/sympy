@@ -736,6 +736,7 @@ def tree_cse(exprs, symbols,  flag_lambdify=False, opt_subs=None, order='canonic
 
 def cse(exprs, symbols=None, optimizations=None, postprocess=None,
         order='canonical', ignore=(), list=True, flag_lambdify=False):
+    print(list, flag_lambdify)
     """ Perform common subexpression elimination on an expression.
 
     Parameters
