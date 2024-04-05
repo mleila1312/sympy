@@ -219,7 +219,7 @@ def pre_treatment_cse(args, expr):
 
         if iterable(expr):
             args = expr
-        else : 
+        else :
             args = expr.args
         list(map(_eliminates_symbols, args))
         return
@@ -241,7 +241,6 @@ def pre_treatment_cse(args, expr):
                 new_expr=new_expr.xreplace({arg: dictionnary[arg]})
             except StopIteration:
                 raise ValueError("Symbols iterator ran out of symbols.")
-
     return dictionnary, new_expr
 
 def post_treatment_cse(dictionnary, args, expr, cses):
