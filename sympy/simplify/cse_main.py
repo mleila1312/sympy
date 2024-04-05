@@ -1,4 +1,3 @@
-
 """ Tools for doing common subexpression elimination.
 """
 from collections import defaultdict
