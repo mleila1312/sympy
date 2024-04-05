@@ -250,7 +250,7 @@ def post_treatment_cse(dictionnary, args, expr, cses):
     from sympy.core.function import Derivative
     post_expr=expr
     post_cses=cses
-    for arg in args : 
+    for arg in args :
         if isinstance(arg, Derivative):
             association=[]
             #Checks if the new name of the Deivative was changed by the cse process
