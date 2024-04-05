@@ -1939,7 +1939,10 @@ def test_derivative_issue_26404():
                             l0*l1*m2*(sin(q1)*cos(q2) - sin(q2)*cos(q1))*u2**2,
                         g*l1*m2*sin(q2) - l0*l1*m2*(-sin(q1)*cos(q2) +
                                                         sin(q2)*cos(q1))*u1**2]])
-    assert ((lambdify((l0, m0 ,l1, m1, m2, g, q0, q1, q2 ,  u1, u2, F, T1), massmatrix1 -forcing1,\
-                       cse=True)( 0, 0 ,0, 1, 1, 1, 0, 1, 1 , 1, 1, 1, 1))==([[ 1., -0., -0.],\
-                                                                              [-1.,  0.,  0.],\
-                                                                              [-1.,  0.,  0.]])).all()
+    res_expected=Matrix([[ 1., 0, 0],[-1.,  0, 0],[-1.,  0,  0]])
+    res_lamdbify=Matrix((lambdify((l0, m0 ,l1, m1, m2, g, q0, q1, q2 ,  u1, u2, F, T1), massmatrix1 -forcing1, \
+                  cse=True)( 0, 0 ,0, 1, 1, 1, 0, 1, 1 , 1, 1, 1, 1)))
+    equal=True
+    for i in range(res_lamdbify.rows*res_lamdbify.cols):
+        equal=equal and (res_expected[i]==res_lamdbify[i])
+    assert equal
