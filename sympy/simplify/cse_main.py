@@ -1,7 +1,8 @@
+
 """ Tools for doing common subexpression elimination.
 """
 from collections import defaultdict
-from sympy.core.symbol import Symbol
+
 from sympy.core import Basic, Mul, Add, Pow, sympify
 from sympy.core.containers import Tuple, OrderedSet
 from sympy.core.exprtools import factor_terms
@@ -18,8 +19,6 @@ from sympy.utilities.iterables import numbered_symbols, sift, \
         topological_sort, iterable
 
 from . import cse_opts
-
-from sympy.core.function import (Derivative, Function)
 
 # (preprocessor, postprocessor) pairs which are commonly useful. They should
 # each take a SymPy expression and return a possibly transformed expression.
@@ -582,7 +581,7 @@ def opt_cse(exprs, order='canonical'):
     return opt_subs
 
 
-def tree_cse(exprs, symbols,opt_subs=None, order='canonical', ignore=()):
+def tree_cse(exprs, symbols, opt_subs=None, order='canonical', ignore=()):
     """Perform raw CSE on expression tree, taking opt_subs into account.
 
     Parameters
@@ -601,7 +600,6 @@ def tree_cse(exprs, symbols,opt_subs=None, order='canonical', ignore=()):
     ignore : iterable of Symbols
         Substitutions containing any Symbol from ``ignore`` will be ignored.
     """
-
     if opt_subs is None:
         opt_subs = {}
 
@@ -696,7 +694,7 @@ def tree_cse(exprs, symbols,opt_subs=None, order='canonical', ignore=()):
             args = expr.args
 
         new_args = list(map(_rebuild, args))
-        if (isinstance(expr, Unevaluated) or new_args != args):
+        if isinstance(expr, Unevaluated) or new_args != args:
             new_expr = expr.func(*new_args)
         else:
             new_expr = expr
@@ -851,7 +849,7 @@ def cse(exprs, symbols=None, optimizations=None, postprocess=None,
     opt_subs = opt_cse(reduced_exprs, order)
 
     # Main CSE algorithm.
-    replacements, reduced_exprs = tree_cse(reduced_exprs, symbols,  opt_subs,
+    replacements, reduced_exprs = tree_cse(reduced_exprs, symbols, opt_subs,
                                            order, ignore)
 
     # Postprocess the expressions to return the expressions to canonical form.
