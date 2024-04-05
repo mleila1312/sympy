@@ -1896,5 +1896,5 @@ def test_derivative_issue_26404():
     t = symbols("t")
     x = Function("x")(t)
     xd = x.diff(t)
-    assert lambdify((xd, x), xd, cse=True)(1, 1) ==1    
+    assert lambdify((xd, x), xd, cse=True)(1, 1) ==1
     assert lambdify((xd, x), xd + x, cse=True)(1, 1) ==2
