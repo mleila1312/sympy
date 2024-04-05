@@ -1893,6 +1893,8 @@ def test_assoc_legendre_numerical_evaluation():
     assert all_close(sympy_result_complex, mpmath_result_complex, tol)
 
 def test_derivative_issue_26404():
+    from sympy import (cos, sin, Matrix, symbols)
+    from sympy.physics.mechanics import (dynamicsymbols)
     t = symbols("t")
     x = Function("x")(t)
     xd = x.diff(t)
@@ -1904,8 +1906,6 @@ def test_derivative_issue_26404():
     assert lambdify((xdd, xd, x), cos(xdd*xd) + x, cse=True)(0,1, 1) == 2.0
     #test for matrix and cases were Derivative(a,b) becomes x_n
     #and cse makes a replacement x_m: x_n**2 or other
-    from sympy import (cos, sin, Matrix, symbols)
-    from sympy.physics.mechanics import (dynamicsymbols)
     l0, m0 = symbols("l0 m0")
     l1, m1 = symbols("l1 m1")
     m2 = symbols("m2")
