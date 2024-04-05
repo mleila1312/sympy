@@ -1891,3 +1891,10 @@ def test_assoc_legendre_numerical_evaluation():
 
     assert all_close(sympy_result_integer, mpmath_result_integer, tol)
     assert all_close(sympy_result_complex, mpmath_result_complex, tol)
+
+def test_derivative_issue_26404():
+    t = symbols("t")
+    x = Function("x")(t)
+    xd = x.diff(t)
+    assert lambdify((xd, x), xd, cse=True)(1, 1) ==1    
+    assert lambdify((xd, x), xd + x, cse=True)(1, 1) ==2

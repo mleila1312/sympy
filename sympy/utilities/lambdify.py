@@ -178,6 +178,97 @@ def _import(module, reload=False):
 # linecache.
 _lambdify_generated_counter = 1
 
+def pre_treatment_cse(args, expr):
+    r'''
+    This function does a pretreatment of the expression to prevent errors when 
+    putting a Derivative as an argument to lambdify. The Derivatives present in 
+    the arguments that also appear in the function are replaced by various strings.
+
+    This function returns the nex expressions with the instances of Derivatives replaced
+    and a dictionnary that contains the associations of changes 
+    (ex : Derivative(x, u) : "x0")
+    '''
+    #Necessary librairies and dependencies
+    from sympy.core.function import Derivative
+    from sympy.core.symbol import Symbol
+    from sympy.core import Basic
+    from sympy.matrices.expressions import MatrixSymbol
+    from sympy.matrices.expressions.matexpr import MatrixElement
+    from sympy.polys.rootoftools import RootOf
+    from sympy.utilities.iterables import numbered_symbols, iterable
+    #creation of the dictionnary
+    dictionnary={}
+    # creation of the symbols that can't be used to replace the Derivatives in the expression
+    excluded_symbols = set()
+    symbols = numbered_symbols(cls=Symbol)
+    def _eliminates_symbols(expr) :
+        # function that finds the symbols that can't be used
+        if not isinstance(expr, Basic):
+            return
+
+        if isinstance(expr, RootOf):
+            return
+
+        if isinstance(expr, Basic) and (
+                expr.is_Atom or
+                expr.is_Order or
+                isinstance(expr, (MatrixSymbol, MatrixElement))):
+            if expr.is_Symbol:
+                excluded_symbols.add(expr.name)
+            return
+
+        if iterable(expr):
+            args = expr
+        else : 
+            args = expr.args
+        list(map(_eliminates_symbols, args))
+        return
+    # gets all the symbols that can't be used
+    if isinstance(expr, list) :
+        for e in expr :
+            if isinstance(e, Basic):
+                _eliminates_symbols(e)
+    else :
+        if isinstance(expr, Basic):
+                _eliminates_symbols(expr)
+    symbols = (_ for _ in symbols if _.name not in excluded_symbols)
+    new_expr=expr
+    # replaces the instances of Derivatives in the expression
+    for arg in args : 
+        if isinstance(arg, Derivative):
+            try:
+                dictionnary[arg] = next(symbols)
+                new_expr=new_expr.xreplace({arg: dictionnary[arg]})
+            except StopIteration:
+                raise ValueError("Symbols iterator ran out of symbols.")
+
+    return dictionnary, new_expr
+
+def post_treatment_cse(dictionnary, args, expr, cses):
+    r'''
+        This function replaces the replaced Derivative(changes made with
+        pre_treatment_cse) by their original values(ie the Derivative)
+    '''
+    from sympy.core.function import Derivative
+    post_expr=expr
+    post_cses=cses
+    for arg in args : 
+        if isinstance(arg, Derivative):
+            association=[]
+            #Checks if the new name of the Deivative was changed by the cse process
+            for new_a,a in post_cses : 
+                if a==dictionnary[arg]:
+                    association=new_a
+                    post_cses.remove((new_a,a))
+                    break
+            if association==[] : 
+                # if the derivative hasn't been replaced by the cse process
+                post_expr=post_expr.xreplace({dictionnary[arg] : arg})
+            else : 
+                # if the derivative has been replaced by the cse process
+                post_expr=post_expr.xreplace({association : arg})
+    return post_cses, post_expr
+
 
 @doctest_depends_on(modules=('numpy', 'scipy', 'tensorflow',), python_version=(3,))
 def lambdify(args, expr, modules=None, printer=None, use_imps=True,
@@ -866,13 +957,17 @@ or tuple for the function arguments.
         funcprinter = _EvaluatorPrinter(printer, dummify)
 
     if cse == True:
+        #get the dictionnary containing the Derivative in the
+        #arguments and their new name
+        dictionnary, new_expr= pre_treatment_cse(args, expr)
         from sympy.simplify.cse_main import cse as cse_function
-        cses, _expr = cse_function(expr, list=False, flag_lambdify=True)
+        cses, _expr = cse_function(new_expr, list=False)
+        #puts back the instances of Derivatives inthe expression
+        cses, _expr= post_treatment_cse(dictionnary, args, _expr, cses)
     elif callable(cse):
         cses, _expr = cse(expr)
     else:
         cses, _expr = (), expr
-    print(cses, _expr)
     funcstr = funcprinter.doprint(funcname, iterable_args, _expr, cses=cses)
 
     # Collect the module imports from the code printers.
