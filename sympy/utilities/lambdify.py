@@ -253,12 +253,18 @@ def post_treatment_cse(dictionnary, args, expr, cses):
     for arg in args :
         if isinstance(arg, Derivative):
             association=[]
+            #checks if if the new name of the Deivative was changed by the cse process
+            #or if combinations of the Derivatives expressions were replaces
+            for i in range(len(cses)) :
+                new_a,a = cses[i]
+                if a.has(dictionnary[arg]):
+                    if a==dictionnary[arg]:
+                        association=new_a
+                        post_cses.remove((new_a,a))
+                    else :
+                        a= a.xreplace({dictionnary[arg] : arg})
+                        cses[i] = new_a, a
             #Checks if the new name of the Deivative was changed by the cse process
-            for new_a,a in post_cses :
-                if a==dictionnary[arg]:
-                    association=new_a
-                    post_cses.remove((new_a,a))
-                    break
             if association==[] :
                 # if the derivative hasn't been replaced by the cse process
                 post_expr=post_expr.xreplace({dictionnary[arg] : arg})
@@ -845,7 +851,7 @@ def lambdify(args, expr, modules=None, printer=None, use_imps=True,
     """
     from sympy.core.symbol import Symbol
     from sympy.core.expr import Expr
-
+    
     # If the user hasn't specified any modules, use what is available.
     if modules is None:
         try:
