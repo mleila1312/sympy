@@ -851,7 +851,6 @@ def lambdify(args, expr, modules=None, printer=None, use_imps=True,
     """
     from sympy.core.symbol import Symbol
     from sympy.core.expr import Expr
-    
     # If the user hasn't specified any modules, use what is available.
     if modules is None:
         try:
