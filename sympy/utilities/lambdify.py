@@ -200,8 +200,7 @@ def _pre_treatment_cse(args_f, expr):
         the changes in a dictionary.
 
         Parameters :
-            args_f : a list(or iterable) of the arguments of expr
-            given in lambdify
+            args_f : the arguments of expr given in lambdify
 
             expr : expression given to lambdify
         Return :
@@ -424,7 +423,8 @@ def lambdify(args, expr, modules=None, printer=None, use_imps=True,
         6
 
     expr : Expr
-        An expression, list of expressions, or matrix to be evaluated.
+        An expression, list of expressions, tuple of expressions or
+        matrix to be evaluated.
 
         Lists may be nested.
         If the expression is a list, the output will also be a list.
