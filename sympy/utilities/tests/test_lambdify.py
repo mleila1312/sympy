@@ -1952,3 +1952,21 @@ def test_derivative_issue_26404():
     for i in range(res_lamdbify.rows*res_lamdbify.cols):
         equal=equal and (res_expected[i]==res_lamdbify[i])
     assert equal
+    # test in the case chen a list of expressions is given
+    expected=[[[0, 2, 18], 5], [18, 1], 0]
+    t1, t2, t3, t4, t5, t6, t7 = symbols("t1 t2 t3 t4 t5 t6 t7")
+    x1, x2, x3, x4, x5, x6, x7 = Function('x1')(t1), Function('x2')(t2), Function('x3')(t3),\
+                            Function('x4')(t4), Function('x5')(t5), Function('x6')(t6),\
+                            Function('x7')(t7)
+    d1, d2, d3, d4, d5, d6, d7 = x1.diff(t1), x2.diff(t2), x3.diff(t3), x4.diff(t4),\
+        x5.diff(t5), x6.diff(t6), x7.diff(t7)
+    list_of_list = [[[d5*d1, d3, d4*d7], d6], [d4*d7, d2],d5*d1]
+    res_list_of_list = lambdify((d1, d2, d3, d4, d5, d6, d7),list_of_list,\
+                                          cse=True)(0,1,2,3,4,5,6)
+    assert (expected[0][0][0] == res_list_of_list[0][0][0] and\
+          expected[0][0][1] == res_list_of_list[0][0][1] and\
+          expected[0][0][2] == res_list_of_list[0][0][2] and \
+          expected[0][1] == res_list_of_list[0][1] and\
+          expected[1][0] == res_list_of_list[1][0] and \
+          expected[1][1] == res_list_of_list[1][1] and \
+          expected[2] == res_list_of_list[2])

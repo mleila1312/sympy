@@ -20,6 +20,8 @@ from sympy.utilities.iterables import (is_sequence, iterable,
     NotIterable, flatten)
 from sympy.utilities.misc import filldedent
 
+from sympy.utilities.iterables import numbered_symbols, iterable
+
 __doctest_requires__ = {('lambdify',): ['numpy', 'tensorflow']}
 
 # Default namespaces, letting us define translations that can't be defined
@@ -178,14 +180,44 @@ def _import(module, reload=False):
 # linecache.
 _lambdify_generated_counter = 1
 
-def pre_treatment_cse(args_f, expr):
+def _replace_recursively(e, dict) :
+        if isinstance(e, list):
+            return list(map(lambda x : _replace_recursively(x, dict), e))
+        else :
+            return e.xreplace(dict)
+
+def _pre_treatment_cse(args_f, expr):
     r"""
-    This function does a pretreatment of the expression to prevent errors when
-    putting a Derivative as an argument to lambdify. The Derivatives present in
-    the arguments that also appear in the function are replaced by various strings.
-    This function returns the new expressions with the instances of Derivatives replaced
-    and a dictionnary that contains the associations of changes
-    (ex : Derivative(x, u) : "x0")
+        This function masks Derivative that are also arguments
+        of the expression to prevent erros in the cse treament
+        in lambdify.
+
+        The first step is to go through the expression to make
+        sure that we don't replace the Derivatives by symbols 
+        already in the expression. Then we replace the 
+        Derivatives in the expression with symbols and remember
+        the changes in a dictionary.
+
+        Examples : 
+        >>> x0 = symbols('x0')
+        >>> y0 = Function('y0')(x0)
+        >>> z0 = y0.diff(x0)
+        >>> _pre_treatment_cse([x0,y0,z0], x0 + y0 + z0)
+        {Derivative(y0(x0)) : 'x1' }, x0 + y0(x0) + x1
+
+        Parameters :
+            args_f : a list(or iterable) of the arguments of expr 
+            given in lambdify
+
+            expr : expression given to lambdify
+        
+        Return :
+            dictionary : dictionary of the associations
+            Derivative-new name
+
+            new_expr : expression where the Derivatives
+            have been replaced
+        
     """
     #Necessary librairies and dependencies
     from sympy.core.function import Derivative
@@ -194,9 +226,9 @@ def pre_treatment_cse(args_f, expr):
     from sympy.matrices.expressions import MatrixSymbol
     from sympy.matrices.expressions.matexpr import MatrixElement
     from sympy.polys.rootoftools import RootOf
-    from sympy.utilities.iterables import numbered_symbols, iterable
-    #creation of the dictionnary
-    dictionnary={}
+    
+    #creation of the dictionary
+    dictionary={}
     # creation of the symbols that can't be used to replace the Derivatives in the expression
     excluded_symbols = set()
     symbols = numbered_symbols(cls=Symbol)
@@ -222,7 +254,7 @@ def pre_treatment_cse(args_f, expr):
             args = expr.args
         list(map(_eliminates_symbols, args))
         return
-    # gets all the symbols that can't be used
+    
     if iterable(expr):
         for e in expr:
             if isinstance(e, Basic):
@@ -230,23 +262,57 @@ def pre_treatment_cse(args_f, expr):
     else :
         if isinstance(expr, Basic):
                 _eliminates_symbols(expr)
-     #gets the possible symbols to replace Derivatives with
+    
+    #gets the possible symbols to replace Derivatives with
     symbols = (_ for _ in symbols if _.name not in excluded_symbols)
     new_expr=expr
     # replaces the instances of Derivatives in the expression
+        
     for arg in args_f :
-        if isinstance(arg, Derivative):
+        if isinstance(arg, (Derivative)):
             try:
-                dictionnary[arg] = next(symbols)
-                new_expr=new_expr.xreplace({arg: dictionnary[arg]})
+                dictionary[arg] = next(symbols)
             except StopIteration:
                 raise ValueError("Symbols iterator ran out of symbols.")
-    return dictionnary, new_expr
+    
+    new_expr=_replace_recursively(new_expr, dictionary) 
+    return dictionary, new_expr
 
-def post_treatment_cse(dictionnary, args, expr, cses):
+def _post_treatment_cse(dictionary, args, expr, cses):
     r"""
-        This function replaces the replaced Derivative(changes made with
-        pre_treatment_cse) by their original values(ie the Derivative)
+        This function changes back the replaced Derivatives to
+        their original values after passing through 
+        _pre_treatment_cse and cse in lambdify.
+
+        This function returns the Derivatives to their
+        original value in the expression and cses.
+
+        Example : 
+            >>> _post_treatment_cse({Derivative(y0(x0)) : 'x1' },\
+            [x0,y0,z0], x2*x1*x3 + y0*x2 + x3, \
+            [(x1*x0, x2), (x0*y0, x3)])
+
+            [(Derivative(y0(x0))*x0, x2), (x0*y0, x3)], 
+            x2*Derivative(y0(x0))*x3 + y0*x2 + x3
+
+        Parameters : 
+            dictionary : dictonary containing associations
+            of Derivative-new name given by _pre_treatment_cse
+
+            args : arguments given to lambdify of expr
+
+            expr : expression returned by cse
+
+            cses : changes made by the cse process containing
+            the associations partial expression- new name
+
+        Return : 
+            post_cses : cses modified to return Derivatives
+            to their original value
+
+            post_expr : expression where the Derivatives have
+            been returned back to their original values
+    
     """
     from sympy.core.function import Derivative
     post_expr = expr
@@ -258,20 +324,20 @@ def post_treatment_cse(dictionnary, args, expr, cses):
             #or if combinations of the Derivatives expressions were replaces
             for i in range(len(cses)) :
                 new_a, a = cses[i]
-                if a.has(dictionnary[arg]):
-                    if a == dictionnary[arg]:
+                if a.has(dictionary[arg]):
+                    if a == dictionary[arg]:
                         association = new_a
                         post_cses.remove((new_a, a))
                     else :
-                        a = a.xreplace({dictionnary[arg] : arg})
+                        a = a.xreplace({dictionary[arg] : arg})
                         cses[i] = new_a, a
             #Checks if the new name of the Deivative was changed by the cse process
             if association == []:
                 # if the derivative hasn't been replaced by the cse process
-                post_expr = post_expr.xreplace({dictionnary[arg] : arg})
+                post_expr = _replace_recursively(post_expr, {dictionary[arg] : arg})
             else :
                 # if the derivative has been replaced by the cse process
-                post_expr = post_expr.xreplace({association : arg})
+                post_expr = _replace_recursively(post_expr,{association : arg})
     return post_cses, post_expr
 
 
@@ -961,13 +1027,13 @@ or tuple for the function arguments.
         funcprinter = _EvaluatorPrinter(printer, dummify)
 
     if cse == True:
-        #get the dictionnary containing the Derivative in the
+        #get the dictionary containing the Derivative in the
         #arguments and their new name
-        dictionnary, new_expr= pre_treatment_cse(args, expr)
+        dictionary, new_expr= _pre_treatment_cse(args, expr)
         from sympy.simplify.cse_main import cse as cse_function
         cses, _expr = cse_function(new_expr, list=False)
         #puts back the instances of Derivatives inthe expression
-        cses, _expr= post_treatment_cse(dictionnary, args, _expr, cses)
+        cses, _expr= _post_treatment_cse(dictionary, args, _expr, cses)
     elif callable(cse):
         cses, _expr = cse(expr)
     else:
