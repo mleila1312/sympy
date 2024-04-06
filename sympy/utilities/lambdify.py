@@ -182,6 +182,8 @@ _lambdify_generated_counter = 1
 def _replace_recursively(e, dict) :
         if isinstance(e, list):
             return [_replace_recursively(sub_e, dict)for sub_e in e]
+        elif isinstance(e, tuple):
+            return tuple([_replace_recursively(sub_e, dict)for sub_e in e])
         else :
             return e.xreplace(dict)
 
