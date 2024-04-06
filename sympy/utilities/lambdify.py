@@ -210,14 +210,13 @@ def _pre_treatment_cse(args_f, expr):
             given in lambdify
 
             expr : expression given to lambdify
-        
         Return :
             dictionary : dictionary of the associations
             Derivative-new name
 
             new_expr : expression where the Derivatives
             have been replaced
-        
+
     """
     #Necessary librairies and dependencies
     from sympy.core.function import Derivative
@@ -312,7 +311,7 @@ def _post_treatment_cse(dictionary, args, expr, cses):
 
             post_expr : expression where the Derivatives have
             been returned back to their original values
-    
+
     """
     from sympy.core.function import Derivative
     post_expr = expr
