@@ -1893,20 +1893,20 @@ def test_assoc_legendre_numerical_evaluation():
     assert all_close(sympy_result_complex, mpmath_result_complex, tol)
 
 def test_derivative_issue_26404():
-    r'''
+    r"""
         test issue fixed when using cse in lambdify when some arguments
         are Derivatives and they appear in the expression
-    '''
+    """
     from sympy import (cos, sin, Matrix, symbols)
     from sympy.physics.mechanics import (dynamicsymbols)
     t = symbols("t")
     x = Function("x")(t)
     xd = x.diff(t)
     xdd= xd.diff(t)
-    assert lambdify((xd, x), xd, cse=True)(1, 1) ==1
-    assert lambdify((xd, x), xd + x, cse=True)(1, 1) ==2
-    assert lambdify((xdd, xd, x), xdd*xd + x, cse=True)(3,1, 1) ==4
-    assert lambdify((xd, xdd, x), xdd*xd + x, cse=True)(3,1, 1) ==4
+    assert lambdify((xd, x), xd, cse=True)(1, 1) == 1
+    assert lambdify((xd, x), xd + x, cse=True)(1, 1) == 2
+    assert lambdify((xdd, xd, x), xdd*xd + x, cse=True)(3,1, 1) == 4
+    assert lambdify((xd, xdd, x), xdd*xd + x, cse=True)(3,1, 1) == 4
     assert lambdify((xdd, xd, x), cos(xdd*xd) + x, cse=True)(0,1, 1) == 2.0
     #test for matrix and cases were Derivative(a,b) becomes x_n
     #and cse makes a replacement x_m: x_n**2 or other
@@ -1946,7 +1946,7 @@ def test_derivative_issue_26404():
                         g*l1*m2*sin(q2) - x0*l1*m2*(-sin(q1)*cos(q2) +
                                                         sin(q2)*cos(q1))*u1**2]])
     res_expected=Matrix([[ 1., 0, 0],[-1.,  0, 0],[-1.,  0,  0]])
-    res_lamdbify=Matrix((lambdify((x0, m0 ,l1, m1, m2, g, q0, q1, q2 ,  u1, u2, F, T1), massmatrix1 -forcing1, \
+    res_lamdbify=Matrix((lambdify((x0, m0 ,l1, m1, m2, g, q0, q1, q2, u1, u2, F, T1), massmatrix1 -forcing1, \
                   cse=True)( 0, 0 ,0, 1, 1, 1, 0, 1, 1 , 1, 1, 1, 1)))
     equal=True
     for i in range(res_lamdbify.rows*res_lamdbify.cols):

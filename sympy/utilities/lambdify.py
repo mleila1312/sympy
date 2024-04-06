@@ -179,14 +179,14 @@ def _import(module, reload=False):
 _lambdify_generated_counter = 1
 
 def pre_treatment_cse(args_f, expr):
-    r'''
+    r"""
     This function does a pretreatment of the expression to prevent errors when
     putting a Derivative as an argument to lambdify. The Derivatives present in
     the arguments that also appear in the function are replaced by various strings.
     This function returns the new expressions with the instances of Derivatives replaced
     and a dictionnary that contains the associations of changes
     (ex : Derivative(x, u) : "x0")
-    '''
+    """
     #Necessary librairies and dependencies
     from sympy.core.function import Derivative
     from sympy.core.symbol import Symbol
@@ -200,7 +200,7 @@ def pre_treatment_cse(args_f, expr):
     # creation of the symbols that can't be used to replace the Derivatives in the expression
     excluded_symbols = set()
     symbols = numbered_symbols(cls=Symbol)
-    def _eliminates_symbols(expr) :
+    def _eliminates_symbols(expr):
         # function that finds the symbols that can't be used
         if not isinstance(expr, Basic):
             return
@@ -223,8 +223,8 @@ def pre_treatment_cse(args_f, expr):
         list(map(_eliminates_symbols, args))
         return
     # gets all the symbols that can't be used
-    if iterable(expr) :
-        for e in expr :
+    if iterable(expr):
+        for e in expr:
             if isinstance(e, Basic):
                 _eliminates_symbols(e)
     else :
@@ -244,34 +244,34 @@ def pre_treatment_cse(args_f, expr):
     return dictionnary, new_expr
 
 def post_treatment_cse(dictionnary, args, expr, cses):
-    r'''
+    r"""
         This function replaces the replaced Derivative(changes made with
         pre_treatment_cse) by their original values(ie the Derivative)
-    '''
+    """
     from sympy.core.function import Derivative
-    post_expr=expr
-    post_cses=cses
-    for arg in args :
+    post_expr = expr
+    post_cses= cses
+    for arg in args:
         if isinstance(arg, Derivative):
-            association=[]
+            association = []
             #checks if if the new name of the Deivative was changed by the cse process
             #or if combinations of the Derivatives expressions were replaces
             for i in range(len(cses)) :
-                new_a,a = cses[i]
+                new_a, a = cses[i]
                 if a.has(dictionnary[arg]):
-                    if a==dictionnary[arg]:
-                        association=new_a
-                        post_cses.remove((new_a,a))
+                    if a == dictionnary[arg]:
+                        association = new_a
+                        post_cses.remove((new_a, a))
                     else :
-                        a= a.xreplace({dictionnary[arg] : arg})
+                        a = a.xreplace({dictionnary[arg] : arg})
                         cses[i] = new_a, a
             #Checks if the new name of the Deivative was changed by the cse process
-            if association==[] :
+            if association == []:
                 # if the derivative hasn't been replaced by the cse process
-                post_expr=post_expr.xreplace({dictionnary[arg] : arg})
+                post_expr = post_expr.xreplace({dictionnary[arg] : arg})
             else :
                 # if the derivative has been replaced by the cse process
-                post_expr=post_expr.xreplace({association : arg})
+                post_expr = post_expr.xreplace({association : arg})
     return post_cses, post_expr
 
 
