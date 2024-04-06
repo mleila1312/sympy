@@ -17,10 +17,9 @@ from sympy.external import import_module # noqa:F401
 from sympy.utilities.exceptions import sympy_deprecation_warning
 from sympy.utilities.decorator import doctest_depends_on
 from sympy.utilities.iterables import (is_sequence, iterable,
-    NotIterable, flatten)
+    NotIterable, flatten, numbered_symbols,)
 from sympy.utilities.misc import filldedent
 
-from sympy.utilities.iterables import numbered_symbols, iterable
 
 __doctest_requires__ = {('lambdify',): ['numpy', 'tensorflow']}
 
@@ -199,10 +198,11 @@ def _pre_treatment_cse(args_f, expr):
         the changes in a dictionary.
 
         Examples :
-        >>> x0 = symbols('x0')
-        >>> y0 = Function('y0')(x0)
-        >>> z0 = y0.diff(x0)
-        >>> _pre_treatment_cse([x0,y0,z0], x0 + y0 + z0)
+        >>>x0 = symbols('x0')
+        >>>y0 = Function('y0')(x0)
+        >>>z0 = y0.diff(x0)
+        >>>_pre_treatment_cse([x0,y0,z0], x0 + y0 + z0)
+
         {Derivative(y0(x0)) : 'x1' }, x0 + y0(x0) + x1
 
         Parameters :
