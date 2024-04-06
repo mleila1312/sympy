@@ -181,7 +181,7 @@ _lambdify_generated_counter = 1
 
 def _replace_recursively(e, dict) :
         if isinstance(e, list):
-            return list(map(lambda x : _replace_recursively(x, dict), e))
+            return [_replace_recursively(sub_e, dict) for sub_e in e]
         else :
             return e.xreplace(dict)
 
