@@ -181,7 +181,7 @@ _lambdify_generated_counter = 1
 
 def _replace_recursively(e, dict) :
         if isinstance(e, list):
-            return [_replace_recursively(sub_e, dict) for sub_e in e]
+            return [_replace_recursively(sub_e, dict)for sub_e in e]
         else :
             return e.xreplace(dict)
 
@@ -196,14 +196,6 @@ def _pre_treatment_cse(args_f, expr):
         already in the expression. Then we replace the
         Derivatives in the expression with symbols and remember
         the changes in a dictionary.
-
-        Examples :
-        >>>x0 = symbols('x0')
-        >>>y0 = Function('y0')(x0)
-        >>>z0 = y0.diff(x0)
-        >>>_pre_treatment_cse([x0,y0,z0], x0 + y0 + z0)
-
-        {Derivative(y0(x0)) : 'x1' }, x0 + y0(x0) + x1
 
         Parameters :
             args_f : a list(or iterable) of the arguments of expr
@@ -285,14 +277,6 @@ def _post_treatment_cse(dictionary, args, expr, cses):
 
         This function returns the Derivatives to their
         original value in the expression and cses.
-
-        Example :
-            >>>_post_treatment_cse({Derivative(y0(x0)) : 'x1' },\
-            [x0,y0,z0], x2*x1*x3 + y0*x2 + x3, \
-            [(x1*x0, x2), (x0*y0, x3)])
-
-            [(Derivative(y0(x0))*x0, x2), (x0*y0, x3)],
-            x2*Derivative(y0(x0))*x3 + y0*x2 + x3
 
         Parameters :
             dictionary : dictonary containing associations
