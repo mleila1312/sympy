@@ -286,7 +286,7 @@ def _post_treatment_cse(dictionary, args, expr, cses):
         This function returns the Derivatives to their
         original value in the expression and cses.
 
-        Example : 
+        Example :
             >>> _post_treatment_cse({Derivative(y0(x0)) : 'x1' },\
             [x0,y0,z0], x2*x1*x3 + y0*x2 + x3, \
             [(x1*x0, x2), (x0*y0, x3)])
@@ -294,7 +294,7 @@ def _post_treatment_cse(dictionary, args, expr, cses):
             [(Derivative(y0(x0))*x0, x2), (x0*y0, x3)],
             x2*Derivative(y0(x0))*x3 + y0*x2 + x3
 
-        Parameters : 
+        Parameters :
             dictionary : dictonary containing associations
             of Derivative-new name given by _pre_treatment_cse
 
@@ -305,7 +305,7 @@ def _post_treatment_cse(dictionary, args, expr, cses):
             cses : changes made by the cse process containing
             the associations partial expression- new name
 
-        Return : 
+        Return :
             post_cses : cses modified to return Derivatives
             to their original value
 
