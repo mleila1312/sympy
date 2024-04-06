@@ -344,15 +344,15 @@ def lambdify(args, expr, modules=None, printer=None, use_imps=True,
     For example, to convert the SymPy expression ``sin(x) + cos(x)`` to an
     equivalent NumPy function that numerically evaluates it:
 
-    >>>from sympy import sin, cos, symbols, lambdify
-    >>>import numpy as np
-    >>>x = symbols('x')
-    >>>expr = sin(x) + cos(x)
-    >>>expr
+    >>> from sympy import sin, cos, symbols, lambdify
+    >>> import numpy as np
+    >>> x = symbols('x')
+    >>> expr = sin(x) + cos(x)
+    >>> expr
     sin(x) + cos(x)
-    >>>f = lambdify(x, expr, 'numpy')
-    >>>a = np.array([1, 2])
-    >>>f(a)
+    >>> f = lambdify(x, expr, 'numpy')
+    >>> a = np.array([1, 2])
+    >>> f(a)
     [1.38177329 0.49315059]
 
     The primary purpose of this function is to provide a bridge from SymPy
