@@ -177,12 +177,13 @@ def _import(module, reload=False):
 # Used for dynamically generated filenames that are inserted into the
 # linecache.
 _lambdify_generated_counter = 1
-def pre_treatment_cse(args, expr):
+
+def pre_treatment_cse(args_f, expr):
     r'''
     This function does a pretreatment of the expression to prevent errors when
     putting a Derivative as an argument to lambdify. The Derivatives present in
     the arguments that also appear in the function are replaced by various strings.
-    This function returns the nex expressions with the instances of Derivatives replaced
+    This function returns the new expressions with the instances of Derivatives replaced
     and a dictionnary that contains the associations of changes
     (ex : Derivative(x, u) : "x0")
     '''
@@ -214,7 +215,7 @@ def pre_treatment_cse(args, expr):
             if expr.is_Symbol:
                 excluded_symbols.add(expr.name)
             return
-
+        #recursively goes through the expression
         if iterable(expr):
             args = expr
         else :
@@ -222,24 +223,24 @@ def pre_treatment_cse(args, expr):
         list(map(_eliminates_symbols, args))
         return
     # gets all the symbols that can't be used
-    if isinstance(expr, list) :
+    if iterable(expr) :
         for e in expr :
             if isinstance(e, Basic):
                 _eliminates_symbols(e)
     else :
         if isinstance(expr, Basic):
                 _eliminates_symbols(expr)
+     #gets the possible symbols to replace Derivatives with
     symbols = (_ for _ in symbols if _.name not in excluded_symbols)
     new_expr=expr
     # replaces the instances of Derivatives in the expression
-    for arg in args :
+    for arg in args_f :
         if isinstance(arg, Derivative):
             try:
                 dictionnary[arg] = next(symbols)
                 new_expr=new_expr.xreplace({arg: dictionnary[arg]})
             except StopIteration:
                 raise ValueError("Symbols iterator ran out of symbols.")
-
     return dictionnary, new_expr
 
 def post_treatment_cse(dictionnary, args, expr, cses):
