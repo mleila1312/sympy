@@ -193,12 +193,12 @@ def _pre_treatment_cse(args_f, expr):
         in lambdify.
 
         The first step is to go through the expression to make
-        sure that we don't replace the Derivatives by symbols 
-        already in the expression. Then we replace the 
+        sure that we don't replace the Derivatives by symbols
+        already in the expression. Then we replace the
         Derivatives in the expression with symbols and remember
         the changes in a dictionary.
 
-        Examples : 
+        Examples :
         >>> x0 = symbols('x0')
         >>> y0 = Function('y0')(x0)
         >>> z0 = y0.diff(x0)
@@ -206,7 +206,7 @@ def _pre_treatment_cse(args_f, expr):
         {Derivative(y0(x0)) : 'x1' }, x0 + y0(x0) + x1
 
         Parameters :
-            args_f : a list(or iterable) of the arguments of expr 
+            args_f : a list(or iterable) of the arguments of expr
             given in lambdify
 
             expr : expression given to lambdify
@@ -281,7 +281,7 @@ def _pre_treatment_cse(args_f, expr):
 def _post_treatment_cse(dictionary, args, expr, cses):
     r"""
         This function changes back the replaced Derivatives to
-        their original values after passing through 
+        their original values after passing through
         _pre_treatment_cse and cse in lambdify.
 
         This function returns the Derivatives to their
@@ -292,7 +292,7 @@ def _post_treatment_cse(dictionary, args, expr, cses):
             [x0,y0,z0], x2*x1*x3 + y0*x2 + x3, \
             [(x1*x0, x2), (x0*y0, x3)])
 
-            [(Derivative(y0(x0))*x0, x2), (x0*y0, x3)], 
+            [(Derivative(y0(x0))*x0, x2), (x0*y0, x3)],
             x2*Derivative(y0(x0))*x3 + y0*x2 + x3
 
         Parameters : 
