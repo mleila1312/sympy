@@ -225,7 +225,7 @@ def _pre_treatment_cse(args_f, expr):
     from sympy.matrices.expressions import MatrixSymbol
     from sympy.matrices.expressions.matexpr import MatrixElement
     from sympy.polys.rootoftools import RootOf
-    
+
     #creation of the dictionary
     dictionary={}
     # creation of the symbols that can't be used to replace the Derivatives in the expression
@@ -249,32 +249,32 @@ def _pre_treatment_cse(args_f, expr):
         #recursively goes through the expression
         if iterable(expr):
             args = expr
-        else :
+        else:
             args = expr.args
         list(map(_eliminates_symbols, args))
         return
-    
+
     if iterable(expr):
         for e in expr:
             if isinstance(e, Basic):
                 _eliminates_symbols(e)
-    else :
+    else:
         if isinstance(expr, Basic):
                 _eliminates_symbols(expr)
-    
+
     #gets the possible symbols to replace Derivatives with
     symbols = (_ for _ in symbols if _.name not in excluded_symbols)
-    new_expr=expr
+    new_expr = expr
     # replaces the instances of Derivatives in the expression
-        
-    for arg in args_f :
+
+    for arg in args_f:
         if isinstance(arg, (Derivative)):
             try:
                 dictionary[arg] = next(symbols)
             except StopIteration:
                 raise ValueError("Symbols iterator ran out of symbols.")
-    
-    new_expr=_replace_recursively(new_expr, dictionary) 
+
+    new_expr=_replace_recursively(new_expr, dictionary)
     return dictionary, new_expr
 
 def _post_treatment_cse(dictionary, args, expr, cses):
@@ -321,7 +321,7 @@ def _post_treatment_cse(dictionary, args, expr, cses):
             association = []
             #checks if if the new name of the Deivative was changed by the cse process
             #or if combinations of the Derivatives expressions were replaces
-            for i in range(len(cses)) :
+            for i in range(len(cses)):
                 new_a, a = cses[i]
                 if a.has(dictionary[arg]):
                     if a == dictionary[arg]:
@@ -334,7 +334,7 @@ def _post_treatment_cse(dictionary, args, expr, cses):
             if association == []:
                 # if the derivative hasn't been replaced by the cse process
                 post_expr = _replace_recursively(post_expr, {dictionary[arg] : arg})
-            else :
+            else:
                 # if the derivative has been replaced by the cse process
                 post_expr = _replace_recursively(post_expr,{association : arg})
     return post_cses, post_expr
